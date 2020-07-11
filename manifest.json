@@ -1,5 +1,5 @@
 {
-  "name": "CatBlock",
+  "name": "Netflix With Friends",
   "version": "1.0",
   "description": "Sync netflix with friends!",
   "permissions": ["tabs"],
