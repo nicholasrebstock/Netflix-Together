@@ -1,23 +1,23 @@
 {
-  "name": "Netflix With Friends",
-  "version": "1.0",
-  "description": "Sync netflix with friends!",
-  "permissions": ["tabs"],
-  "content_scripts": [
-    {
-      "matches": ["https://*.netflix.com/*"],
-      "js": ["netflixController.js"]
-    }
-  ],
-  "page_action": {
-    "default_title": "Netflix",
-    "default_popup": "popup.html"
-  },
-  
-  "background": {
-    "scripts": [
-      "background.js"
-    ]
-  },
-  "manifest_version": 2
+    "name": "Netflix With Friends",
+    "version": "1.0",
+    "description": "Sync netflix with friends!",
+    "permissions": ["tabs"],
+    "content_scripts": [
+        {
+            "matches": ["https://*.netflix.com/*"],
+            "js": ["netflixController.js"]
+        }
+    ],
+    "page_action": {
+        "default_title": "Netflix",
+        "default_popup": "popup.html"
+    },
+    
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "manifest_version": 2
 }

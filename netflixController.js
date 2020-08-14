@@ -1,12 +1,14 @@
 function main() {
     window.addEventListener('message', function(event) {
-        console.log(event)
         if (event.data.text == "pause") {
             pause()
+            console.log(event)
         } else if (event.data.text == "play") {
             play()
+            console.log(event)
         } else if (event.data.text.includes("seek")) {
             seek(event.data.text.slice(event.data.text.indexOf("seek") + 6, event.data.text.length))
+            console.log(event)
         }
     });
     
