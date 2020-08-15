@@ -19,6 +19,7 @@ let ping = 0
 let connectionId = ''
 
 let timeCompensation = 0
+let timeMinusPosition = 0
 
 // activate button for any new url that matches pattern
 function onNewUrl(tabId, changeInfo, tabInfo) {
@@ -63,7 +64,7 @@ function connectToSocket() {
             }
             
             // if it is a control broadcast message
-            else if (messageFromServer == "play" || messageFromServer == "pause" || messageFromServer.includes("seek")) {
+            else if (messageFromServer.includes("play") || messageFromServer.includes("pause") || messageFromServer.includes("seek")) {
                 // relay message to each netflix tab's content script
                 openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: messageFromServer}) )
                 // log attempt
@@ -125,13 +126,16 @@ function disconnectFromSocket() {
 
 // send to server so server can relay to other clients
 function broadcastPause() {
-    ws.send("pause")
+    ws.send("pause," + connectionId + "," + getPosition().toString())
+    openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: "pause"}) )
     console.log("pause")
 }
 
 // send to server so server can relay to other clients
 function broadcastPlay() {
-    ws.send("play")
+    timeMinusPosition = Date.now() + timeCompensation - getPosition()
+    ws.send("play," + connectionId + "," +  timeMinusPosition.toString())
+    openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, { message: "play"}))
     console.log("play")
 }
 
@@ -141,6 +145,9 @@ function broadcastSeek(time) {
     console.log(time)
 }
 
+function getPosition() {
+
+}
 
 // set listener so script can recieve information from other parts of the extension
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {    
