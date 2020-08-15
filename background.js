@@ -91,7 +91,7 @@ function connectToSocket() {
         // set pinger
         pingInterval = setInterval(() => {
             pingServer()
-        }, 1000);
+        }, 5000);
         
     }
 }

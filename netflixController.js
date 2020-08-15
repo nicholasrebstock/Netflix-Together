@@ -1,10 +1,12 @@
 function main() {
     window.addEventListener('message', function(event) {
-        if (event.data.text == "pause") {
-            pause()
+        if (event.data.text.includes("pause")) {
+            let position = event.data.text.split(",")[2]
+            pause(parseInt(position))
             console.log(event)
-        } else if (event.data.text == "play") {
-            play()
+        } else if (event.data.text.includes("play")) {
+            let timeMinusPosition = event.data.text.split(",")[2]
+            play(parseInt(timeMinusPosition))
             console.log(event)
         } else if (event.data.text.includes("seek")) {
             seek(event.data.text.slice(event.data.text.indexOf("seek") + 6, event.data.text.length))
@@ -56,6 +58,20 @@ function main() {
         const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
         const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
         player.seek(parseInt(time, 10) * 1000)
+    }
+
+    function getPosition() {
+        const videoPlayer = netflix
+        .appContext
+        .state
+        .playerApp
+        .getAPI()
+        .videoPlayer
+        
+        // Getting player id
+        const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
+        const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
+        player.getCurrentTime()
     }
     
 }
