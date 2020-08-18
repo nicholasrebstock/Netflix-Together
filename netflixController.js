@@ -37,6 +37,7 @@ function main() {
         // pause, seek
         const player = getNetflixPlayer()
         player.pause()
+        player.seek(position * 1000)
     }
     
     function play(timePositionConstant) {
