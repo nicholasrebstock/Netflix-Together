@@ -59,7 +59,7 @@ function connectToSocket() {
             let data = messageFromServer[1]
             // if it is pinging message
             if (action == "pong") {
-                let num = parseInt(messageFromServer.split(',')[1])
+                let num = parseInt(data)
                 ping = Date.now() - pingTimes[num]
                 console.log(ping)
             }
@@ -67,7 +67,7 @@ function connectToSocket() {
             // if it is a control broadcast message
             else if (action == "play" || action == "pause") {
                 // relay message to each netflix tab's content script
-                openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: messageFromServer}) )
+                openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: `${action},${data}`}) )
                 // log attempt
                 console.log(`asking controller to ${action} at ${data}`)
             }
