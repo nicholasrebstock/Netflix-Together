@@ -8,9 +8,11 @@ function main() {
             let action = message[0]
             let data = message[1]
             if (action == "pause") {
+                console.log("told to pause " + data)
                 pause(parseInt(data))
                 console.log(event)
             } else if (action == "play") {
+                console.log("told to unpause " + data)
                 play(parseInt(data))
                 console.log(event)
             }
@@ -69,12 +71,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         video = document.querySelector('video');
 
         video.addEventListener('pause', (event) => {
-            console.log(event);
-            userPaused();
+            console.log("local paused");
+            setTimeout(userPaused, 10)
         });
         video.addEventListener('play', (event) => {
-            console.log(event);
-            userUnpaused();
+            console.log("local unpaused");
+            setTimeout(userUnpaused, 10)
         });
     } 
 });
