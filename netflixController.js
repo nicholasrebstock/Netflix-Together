@@ -9,11 +9,11 @@ function main() {
             let data = message[1]
             if (action == "pause") {
                 console.log("told to pause " + data)
-                pause(parseInt(data))
+                pause(parseFloat(data))
                 console.log(event)
             } else if (action == "play") {
                 console.log("told to unpause " + data)
-                play(parseInt(data))
+                play(parseFloat(data))
                 console.log(event)
             }
         }
@@ -40,6 +40,7 @@ function main() {
         const player = getNetflixPlayer()
         player.pause()
         player.seek(position * 1000)
+        console.log(position * 1000)
     }
     
     function play(timePositionConstant) {
