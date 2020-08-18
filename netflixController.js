@@ -39,16 +39,17 @@ function main() {
         // pause, seek
         const player = getNetflixPlayer()
         player.pause()
-        player.seek(position * 1000)
-        console.log(position * 1000)
+        player.seek(position)
     }
     
     function play(timePositionConstant) {
         // seek, play after timeout to sync
         const player = getNetflixPlayer()
-        player.play()
+        player.pause()
+        console.log(Date.now() + 500 - timePositionConstant)
+        player.seek(Date.now() + 500 - timePositionConstant)
+        setTimeout(() => {player.play()}, 500)
     }
-
 }
 
 // for injecting above into page
@@ -64,7 +65,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let action = mes[0]
     let data = mes[1]
     console.log(`${action}: ${data}`)
-    if (action == "pause" || action == "play") {
+    if (action == "pause") {
+        window.postMessage({ type: 'control', text: `${action},${data}`}, '*' /* targetOrigin: any */ );
+    } else if (action == "play") {
         window.postMessage({ type: 'control', text: `${action},${data}`}, '*' /* targetOrigin: any */ );
     } else if (action == "connect") {
         console.log("Netflix Controller: Connected and Initialized")
@@ -83,11 +86,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function userPaused() {
-    let pos = video.currentTime
-    chrome.runtime.sendMessage({broadcastRequest: ["pause", pos]});
+    let pos = video.currentTime * 1000
+    chrome.runtime.sendMessage({broadcastRequest: ["pause", pos.toString()]});
 }
 
 function userUnpaused() {
-    let pos = video.currentTime
-    chrome.runtime.sendMessage({broadcastRequest: ["play", pos]});
+    let pos = video.currentTime * 1000
+    chrome.runtime.sendMessage({broadcastRequest: ["play", pos.toString()]});
 }

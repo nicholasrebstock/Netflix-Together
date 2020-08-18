@@ -65,7 +65,14 @@ function connectToSocket() {
             }
             
             // if it is a control broadcast message
-            else if (action == "play" || action == "pause") {
+            else if (action == "play") {
+                
+                data = (parseFloat(data) - timeCompensation).toString()
+                // relay message to each netflix tab's content script
+                openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: `${action},${data}`}) )
+                // log attempt
+                console.log(`asking controller to ${action} at ${data}`)
+            } else if (action == "pause") {
                 // relay message to each netflix tab's content script
                 openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: `${action},${data}`}) )
                 // log attempt
@@ -122,7 +129,7 @@ function disconnectFromSocket() {
 function broadcast(action, pos) {
     if (action == "play") {
         timeMinusPosition = Date.now() + timeCompensation - pos
-        ws.send(`${connectionId},${action},${timeMinusPosition.toString()}`)
+        ws.send(`${connectionId},${action},${(timeMinusPosition).toString()}`)
     } else if (action == "pause") {
         ws.send(`${connectionId},${action},${pos.toString()}`)
     }
