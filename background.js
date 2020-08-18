@@ -58,7 +58,7 @@ function connectToSocket() {
             let action = messageFromServer[0]
             let data = messageFromServer[1]
             // if it is pinging message
-            if (action == "ping") {
+            if (action == "pong") {
                 let num = parseInt(messageFromServer.split(',')[1])
                 ping = Date.now() - pingTimes[num]
                 console.log(ping)
@@ -77,7 +77,7 @@ function connectToSocket() {
                 syncWithServer()
             } else if (action == "sync") {
                 ping = Date.now() - pingTimes[parseInt(data)]
-                let sTime = messageFromServer.split(',')[2] - ping/2
+                let sTime = data - ping/2
                 let lTime = Date.now() - ping/2
                 
                 timeCompensation = sTime - lTime
