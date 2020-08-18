@@ -56,12 +56,14 @@ let video
 
 // receive messages from bg script and respond
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {    
-    let action = message.message[0]
-    let data = message.message[1]
+    let mes = message.message.split(",")
+    let action = mes[0]
+    let data = mes[1]
+    console.log(`${action}: ${data}`)
     if (action == "pause" || action == "play") {
         window.postMessage({ type: 'control', text: `${action},${data}`}, '*' /* targetOrigin: any */ );
     } else if (action == "connect") {
-        console.log("Netflix Together: Connected and Initialized")
+        console.log("Netflix Controller: Connected and Initialized")
         
         video = document.querySelector('video');
 
