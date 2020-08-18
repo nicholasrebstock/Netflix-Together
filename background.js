@@ -29,12 +29,12 @@ function onNewUrl(tabId, changeInfo, tabInfo) {
     }
 }
 
-
 // function called by connect button
 function connectToSocket() {
     // connect only if currently not connected
     if (connectionId == '') {
-        
+        // add listeners in content script
+        openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: "connect"}) )
         // connect
         let HOST = "wss://quiet-meadow-89993.herokuapp.com/"
         ws = new WebSocket(HOST);
@@ -54,32 +54,29 @@ function connectToSocket() {
         // define response to server messages
         ws.onmessage = (event) => {
 
-            const messageFromServer = event.data.toString()
-            
+            const messageFromServer = event.data.toString().split(",")
+            let action = messageFromServer[0]
+            let data = messageFromServer[1]
             // if it is pinging message
-            if (messageFromServer.includes("pong")) {
+            if (action == "ping") {
                 let num = parseInt(messageFromServer.split(',')[1])
                 ping = Date.now() - pingTimes[num]
                 console.log(ping)
             }
             
             // if it is a control broadcast message
-            else if (messageFromServer.includes("play") || messageFromServer.includes("pause") || messageFromServer.includes("seek")) {
+            else if (action == "play" || action == "pause") {
                 // relay message to each netflix tab's content script
                 openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: messageFromServer}) )
                 // log attempt
-                console.log("asking controller to " + messageFromServer)
+                console.log(`asking controller to ${action} at ${data}`)
             }
-
             // if it is welcome message
-            else if (messageFromServer.includes("welcome")) {
-                let data = messageFromServer.split(",")
-                // get id from message
-                connectionId = data[1]
+            else if (action == "welcome") {
+                connectionId = data
                 syncWithServer()
-            } else if (messageFromServer.includes("sync")) {
-                let num = parseInt(messageFromServer.split(',')[1])
-                ping = Date.now() - pingTimes[num]
+            } else if (action == "sync") {
+                ping = Date.now() - pingTimes[parseInt(data)]
                 let sTime = messageFromServer.split(',')[2] - ping/2
                 let lTime = Date.now() - ping/2
                 
@@ -88,7 +85,7 @@ function connectToSocket() {
                 console.log("Time compensation: " + timeCompensation.toString())
             }
         };
-        
+
         // set pinger
         pingInterval = setInterval(() => {
             pingServer()
@@ -97,13 +94,12 @@ function connectToSocket() {
     }
 }
 
-
 // create ping function
 function pingServer() {
     if (connectionId != '') {
         console.log("pinged")
         // ping with connection id and number
-        ws.send("ping," + connectionId + "," + pingNumber.toString())
+        ws.send(`${connectionId},ping,${pingNumber.toString()}`)
         pingTimes[pingNumber] = Date.now()
         pingNumber = (pingNumber + 1) % 20
     }
@@ -111,7 +107,7 @@ function pingServer() {
 
 function syncWithServer() {
     // ping with connection id and number
-    ws.send("sync," + connectionId + "," + pingNumber.toString())
+    ws.send(`${connectionId},sync,${pingNumber.toString()}`)
     pingTimes[pingNumber] = Date.now()
     pingNumber = (pingNumber + 1) % 20
 }
@@ -119,48 +115,26 @@ function syncWithServer() {
 // self explanatory
 function disconnectFromSocket() {
     ws.close()
-    console.log("connected closed")
-}
-
-// TODO: replace with one function "broadcast(message)" and use enum or something 
-
-// send to server so server can relay to other clients
-function broadcastPause() {
-    ws.send("pause," + connectionId + "," + getPosition().toString())
-    openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: "pause"}) )
-    console.log("pause")
+    console.log("connection closed")
 }
 
 // send to server so server can relay to other clients
-function broadcastPlay() {
-    timeMinusPosition = Date.now() + timeCompensation - getPosition()
-    ws.send("play," + connectionId + "," +  timeMinusPosition.toString())
-    openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, { message: "play"}))
-    console.log("play")
+function broadcast(action, pos) {
+    if (action == "play") {
+        timeMinusPosition = Date.now() + timeCompensation - pos
+        ws.send(`${connectionId},${action},${timeMinusPosition.toString()}`)
+    } else if (action == "pause") {
+        ws.send(`${connectionId},${action},${pos.toString()}`)
+    }
 }
 
-// send to server so server can relay to other clients
-function broadcastSeek(time) {
-    ws.send(time)
-    console.log(time)
-}
-
-function getPosition() {
-
-}
 
 // set listener so script can recieve information from other parts of the extension
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {    
     if (message == "connect") {
         connectToSocket()
-    } else if (message == "disconnect") {
-        disconnectFromSocket()
-    } else if (message == "broadcastpause") {
-        broadcastPause()
-    } else if (message == "broadcastplay") {
-        broadcastPlay()
-    } else if (message.includes("broadcastseek")) {
-        broadcastSeek(message.slice(message.indexOf("broadcastseek") + 6, message.length))
+    } else if (message.broadcastRequest) {
+        broadcast(message.broadcastRequest[0], message.broadcastRequest[1])
     }
 });
 

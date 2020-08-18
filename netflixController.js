@@ -1,20 +1,25 @@
 function main() {
+
+    // controller are handled here
     window.addEventListener('message', function(event) {
-        if (event.data.text.includes("pause")) {
-            let position = event.data.text.split(",")[2]
-            pause(parseInt(position))
-            console.log(event)
-        } else if (event.data.text.includes("play")) {
-            let timeMinusPosition = event.data.text.split(",")[2]
-            play(parseInt(timeMinusPosition))
-            console.log(event)
-        } else if (event.data.text.includes("seek")) {
-            seek(event.data.text.slice(event.data.text.indexOf("seek") + 6, event.data.text.length))
-            console.log(event)
+        
+        if (event.data.text != null) {
+            let message = event.data.text.split(",")
+            let action = message[0]
+            let data = message[1]
+            if (action == "pause") {
+                pause(parseInt(data))
+                console.log(event)
+            } else if (action == "play") {
+                play(parseInt(data))
+                console.log(event)
+            }
         }
     });
     
-    function pause() {
+
+    // helper functions
+    function getNetflixPlayer() {
         const videoPlayer = netflix
         .appContext
         .state
@@ -25,67 +30,58 @@ function main() {
         // Getting player id
         const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
         
-        const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
+        return videoPlayer.getVideoPlayerBySessionId(playerSessionId)
+    }
+
+    function pause(position) {
+        // pause, seek
+        const player = getNetflixPlayer()
         player.pause()
     }
     
-    
-    function play() {
-        const videoPlayer = netflix
-        .appContext
-        .state
-        .playerApp
-        .getAPI()
-        .videoPlayer
-        
-        // Getting player id
-        const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
-        
-        const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
+    function play(timePositionConstant) {
+        // seek, play after timeout to sync
+        const player = getNetflixPlayer()
         player.play()
     }
-    
-    
-    function seek(time) {
-        const videoPlayer = netflix
-        .appContext
-        .state
-        .playerApp
-        .getAPI()
-        .videoPlayer
-        
-        // Getting player id
-        const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
-        const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
-        player.seek(parseInt(time, 10) * 1000)
-    }
 
-    function getPosition() {
-        const videoPlayer = netflix
-        .appContext
-        .state
-        .playerApp
-        .getAPI()
-        .videoPlayer
-        
-        // Getting player id
-        const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
-        const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
-        player.getCurrentTime()
-    }
-    
 }
 
+// for injecting above into page
 var script = document.createElement('script');
-script.appendChild(document.createTextNode('('+ main +')();'));
+script.appendChild(document.createTextNode('('+ main +')()'));
 (document.body || document.head || document.documentElement).appendChild(script);
 
+let video
 
-
+// receive messages from bg script and respond
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {    
-    if (message.message == "pause" || message.message == "play" || message.message.includes("seek")) {
-        window.postMessage({ type: 'control',
-        text: message.message},
-        '*' /* targetOrigin: any */ );
-    }
+    let action = message.message[0]
+    let data = message.message[1]
+    if (action == "pause" || action == "play") {
+        window.postMessage({ type: 'control', text: `${action},${data}`}, '*' /* targetOrigin: any */ );
+    } else if (action == "connect") {
+        console.log("Netflix Together: Connected and Initialized")
+        
+        video = document.querySelector('video');
+
+        video.addEventListener('pause', (event) => {
+            console.log(event);
+            userPaused();
+        });
+        video.addEventListener('play', (event) => {
+            console.log(event);
+            userUnpaused();
+        });
+    } 
 });
+
+function userPaused() {
+    let pos = video.currentTime
+    chrome.runtime.sendMessage({broadcastRequest: ["pause", pos]});
+}
+
+function userUnpaused() {
+    let pos = video.currentTime
+    chrome.runtime.sendMessage({broadcastRequest: ["play", pos]});
+}
