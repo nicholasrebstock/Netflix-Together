@@ -71,12 +71,12 @@ function connectToSocket() {
                 // relay message to each netflix tab's content script
                 openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: `${action},${data}`}) )
                 // log attempt
-                console.log(`asking controller to ${action} at ${data}`)
+                console.log(`asking controller to ${action} at time-pos = ${data}`)
             } else if (action == "pause") {
                 // relay message to each netflix tab's content script
                 openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: `${action},${data}`}) )
                 // log attempt
-                console.log(`asking controller to ${action} at ${data}`)
+                console.log(`asking controller to ${action} at pos = ${data}`)
             }
             // if it is welcome message
             else if (action == "welcome") {

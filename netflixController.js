@@ -46,7 +46,7 @@ function main() {
         const player = getNetflixPlayer()
         player.pause()
         console.log(Date.now() + 500 - timePositionConstant)
-        player.seek((Date.now() + 500 - timePositionConstant)/1000)
+        player.seek((Date.now() + 500 - timePositionConstant))
         setTimeout(() => {player.play()}, 500)
     }
 }
@@ -86,10 +86,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 function userPaused() {
     let pos = video.currentTime * 1000
+    console.log(pos.toString())
     chrome.runtime.sendMessage({broadcastRequest: ["pause", pos.toString()]});
 }
 
 function userUnpaused() {
     let pos = video.currentTime * 1000
+    console.log(pos.toString())
     chrome.runtime.sendMessage({broadcastRequest: ["play", pos.toString()]});
 }
