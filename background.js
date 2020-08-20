@@ -83,9 +83,10 @@ function connectToSocket() {
                 connectionId = data
                 syncWithServer()
             } else if (action == "sync") {
-                ping = Date.now() - pingTimes[parseInt(data)]
-                let sTime = data - ping/2
-                let lTime = Date.now() - ping/2
+                let num = messageFromServer[2]
+                ping = Date.now() - pingTimes[parseInt(num)]
+                let sTime = parseFloat(data) + ping/2
+                let lTime = Date.now()
                 
                 timeCompensation = sTime - lTime
                 // add to local time to get server time.
@@ -129,6 +130,9 @@ function disconnectFromSocket() {
 function broadcast(action, pos) {
     if (action == "play") {
         timeMinusPosition = Date.now() + timeCompensation - parseFloat(pos)
+        console.log(Date.now())
+        console.log(timeCompensation)
+        console.log(parseFloat(pos))
         ws.send(`${connectionId},${action},${timeMinusPosition}`)
     } else if (action == "pause") {
         ws.send(`${connectionId},${action},${pos}`)
