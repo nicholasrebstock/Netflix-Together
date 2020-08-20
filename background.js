@@ -128,10 +128,10 @@ function disconnectFromSocket() {
 // send to server so server can relay to other clients
 function broadcast(action, pos) {
     if (action == "play") {
-        timeMinusPosition = Date.now() + timeCompensation - pos
-        ws.send(`${connectionId},${action},${(timeMinusPosition).toString()}`)
+        timeMinusPosition = Date.now() + timeCompensation - parseFloat(pos)
+        ws.send(`${connectionId},${action},${timeMinusPosition}`)
     } else if (action == "pause") {
-        ws.send(`${connectionId},${action},${pos.toString()}`)
+        ws.send(`${connectionId},${action},${pos}`)
     }
 }
 

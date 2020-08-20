@@ -18,7 +18,6 @@ function main() {
             }
         }
     });
-    
 
     // helper functions
     function getNetflixPlayer() {
@@ -47,7 +46,7 @@ function main() {
         const player = getNetflixPlayer()
         player.pause()
         console.log(Date.now() + 500 - timePositionConstant)
-        player.seek(Date.now() + 500 - timePositionConstant)
+        player.seek((Date.now() + 500 - timePositionConstant)/1000)
         setTimeout(() => {player.play()}, 500)
     }
 }
