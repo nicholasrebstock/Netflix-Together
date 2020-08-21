@@ -17,7 +17,7 @@ let ping = 0
 
 // how server identifies this client
 let connectionId = ''
-
+let connected = false
 let timeCompensation = 0
 let timeMinusPosition = 0
 
@@ -32,22 +32,26 @@ function onNewUrl(tabId, changeInfo, tabInfo) {
 // function called by connect button
 function connectToSocket() {
     // connect only if currently not connected
-    if (connectionId == '') {
+    if (!connected) {
         // add listeners in content script
         openNetflixTabs.forEach( tab => chrome.tabs.sendMessage(tab, {message: "connect"}) )
         // connect
         let HOST = "wss://quiet-meadow-89993.herokuapp.com/"
         ws = new WebSocket(HOST);
+        chrome.runtime.sendMessage(`connectionChange,connected`);
+        connected = true
         // log connection
         console.log("connected started")
         
         // set listener for when connection is closed
         ws.onclose = (event) => {
             // remove id
+            connected = false
             connectionId = ''
             // stop pinging
             clearInterval(pingInterval)
             // log in browser
+            chrome.runtime.sendMessage(`connectionChange,Not Connected`); 
             console.log("connected ID reset")
         };
 
@@ -62,6 +66,7 @@ function connectToSocket() {
                 let num = parseInt(data)
                 ping = Date.now() - pingTimes[num]
                 console.log(ping)
+                chrome.runtime.sendMessage(`pingValue,${ping}`); 
             }
             
             // if it is a control broadcast message
@@ -97,7 +102,7 @@ function connectToSocket() {
         // set pinger
         pingInterval = setInterval(() => {
             pingServer()
-        }, 5000);
+        }, 1000);
         
     }
 }
@@ -144,8 +149,16 @@ function broadcast(action, pos) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {    
     if (message == "connect") {
         connectToSocket()
+    } else if (message == "disconnect") {
+        disconnectFromSocket()
     } else if (message.broadcastRequest) {
         broadcast(message.broadcastRequest[0], message.broadcastRequest[1])
+    } else if (message == "setupPopup") {
+        console.log("popup opened")
+        if (connected) {
+            chrome.runtime.sendMessage(`connectionChange,connected`);
+            chrome.runtime.sendMessage(`pingValue,${ping}`);
+        }
     }
 });
 

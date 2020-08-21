@@ -75,11 +75,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
         video.addEventListener('pause', (event) => {
             console.log("local paused");
-            setTimeout(userPaused, 10)
+            userPaused()
         });
         video.addEventListener('play', (event) => {
             console.log("local unpaused");
-            setTimeout(userUnpaused, 10)
+            userUnpaused()
         });
     } 
 });
